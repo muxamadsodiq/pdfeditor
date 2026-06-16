@@ -84,19 +84,19 @@ export function TopToolbar({
     activeTool === tool ? "bg-white text-emerald-950 hover:bg-emerald-50" : "text-white hover:bg-white/10 hover:text-white";
 
   return (
-    <header className="flex min-h-14 flex-none items-center justify-between gap-3 overflow-x-auto border-b border-emerald-950/20 bg-emerald-950 px-3 py-2 text-white">
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500 text-emerald-950">
+    <header className="flex min-h-14 flex-none items-center gap-3 overflow-x-auto border-b border-emerald-950/20 bg-emerald-950 px-3 py-2 text-white">
+      <div className="flex flex-none items-center gap-2 pr-1">
+        <div className="flex h-9 w-9 flex-none items-center justify-center rounded-md bg-emerald-500 text-emerald-950">
           <FileText className="h-5 w-5" />
         </div>
-        <div className="min-w-0">
+        <div className="hidden min-w-[132px] xl:block">
           <div className="truncate text-sm font-semibold">Yusuf PDF Editor</div>
           <div className="text-xs text-white/55">Free public editor</div>
         </div>
       </div>
 
-      <div className="flex items-center gap-1">
-        <Button variant="secondary" size="sm" className="bg-emerald-100 text-emerald-950 hover:bg-white" onClick={() => inputRef.current?.click()}>
+      <div className="flex flex-none items-center gap-1">
+        <Button variant="secondary" size="sm" className="flex-none bg-emerald-100 text-emerald-950 hover:bg-white" onClick={() => inputRef.current?.click()}>
           <Upload className="h-4 w-4" />
           Upload PDF
         </Button>
@@ -151,7 +151,7 @@ export function TopToolbar({
         </Button>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="ml-auto flex flex-none items-center gap-1">
         <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 hover:text-white" onClick={onZoomOut}>
           <Minus className="h-4 w-4" />
         </Button>
