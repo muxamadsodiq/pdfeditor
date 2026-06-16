@@ -42,6 +42,8 @@ def hex_to_rgb(value: str) -> tuple[float, float, float]:
 
 def _font_name(edit: PdfEditOperation) -> str:
     family = edit.style.font.lower()
+    wants_bold = edit.style.bold or any(token in family for token in ("bold", "black", "heavy", "semibold", "semi-bold", "demi"))
+    wants_italic = edit.style.italic or "italic" in family or "oblique" in family
     if "courier" in family or "mono" in family:
         regular, bold, italic, bold_italic = "cour", "cobo", "coit", "cobi"
     elif "times" in family or "serif" in family or "roman" in family:
@@ -49,11 +51,11 @@ def _font_name(edit: PdfEditOperation) -> str:
     else:
         regular, bold, italic, bold_italic = "helv", "hebo", "heit", "hebi"
 
-    if edit.style.bold and edit.style.italic:
+    if wants_bold and wants_italic:
         return bold_italic
-    if edit.style.bold:
+    if wants_bold:
         return bold
-    if edit.style.italic:
+    if wants_italic:
         return italic
     return regular
 

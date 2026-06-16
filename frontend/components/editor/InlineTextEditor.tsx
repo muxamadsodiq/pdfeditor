@@ -3,7 +3,7 @@
 import { ChangeEvent, KeyboardEvent, SyntheticEvent, useLayoutEffect, useRef, useState } from "react";
 
 import type { OverlayRect } from "@/lib/coordinates";
-import { pdfFontToCssFamily } from "@/lib/textStyle";
+import { pdfFontSizeForRect, pdfFontToCssFamily, pdfFontToCssStyle, pdfFontToCssWeight, pdfLineHeightForRect } from "@/lib/textStyle";
 import { useEditorStore, type TextStyle } from "@/store/editorStore";
 import type { PdfTextSpan } from "@/types/pdf";
 
@@ -74,12 +74,12 @@ export function InlineTextEditor({ span, rect, canvasWidth, canvasHeight, scale,
     updateEditingValue(event.target.value);
   }
 
-  const fontSize = Math.max(8, style.size * scale);
+  const fontSize = pdfFontSizeForRect(style.size, rect.height, scale);
   const estimatedWidth = Math.max(rect.width + 16, editingValue.length * fontSize * 0.58, 48);
   const availableWidth = Math.max(48, canvasWidth - rect.left - 4);
   const editorWidth = Math.min(availableWidth, estimatedWidth);
   const editorMinWidth = Math.min(availableWidth, Math.max(rect.width + 8, 40));
-  const editorMinHeight = Math.max(rect.height + 4, fontSize * 1.35);
+  const editorMinHeight = Math.max(rect.height, fontSize * 1.08);
   const editorMaxHeight = Math.max(40, canvasHeight - rect.top - 4);
   const coverPadding = Math.max(3, Math.min(6, fontSize * 0.18));
   const coverLeft = Math.max(0, rect.left - coverPadding);
@@ -115,10 +115,13 @@ export function InlineTextEditor({ span, rect, canvasWidth, canvasHeight, scale,
           color: style.color,
           fontFamily: pdfFontToCssFamily(style.font),
           fontSize,
-          fontWeight: style.bold ? 700 : 400,
-          fontStyle: style.italic ? "italic" : "normal",
+          fontWeight: pdfFontToCssWeight(style.font, style.bold),
+          fontStyle: pdfFontToCssStyle(style.font, style.italic),
           textDecoration: style.underline ? "underline" : "none",
-          lineHeight: 1.12,
+          lineHeight: pdfLineHeightForRect(fontSize, rect.height),
+          letterSpacing: 0,
+          WebkitFontSmoothing: "antialiased",
+          fontSynthesis: "none",
         }}
         rows={1}
         onChange={handleChange}

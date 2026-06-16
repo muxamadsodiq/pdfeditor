@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { InlineTextEditor } from "@/components/editor/InlineTextEditor";
 import type { CanvasSize, OverlayRect } from "@/lib/coordinates";
 import { overlayRectToPdfBbox, pdfBboxToOverlayRect } from "@/lib/coordinates";
-import { pdfFontToCssFamily } from "@/lib/textStyle";
+import { pdfFontSizeForRect, pdfFontToCssFamily, pdfFontToCssStyle, pdfFontToCssWeight, pdfLineHeightForRect } from "@/lib/textStyle";
 import { cn } from "@/lib/utils";
 import { defaultTextStyle, useEditorStore, type TextStyle } from "@/store/editorStore";
 import type { PdfTextLayerPage, PdfTextSpan } from "@/types/pdf";
@@ -151,6 +151,7 @@ export function TextOverlay({ page, canvasSize }: TextOverlayProps) {
         const moved = Boolean(spanBboxOverrides[span.id]);
         const hasPreview = deleted || previewText !== undefined || styleOverrides[span.id] || moved;
         const backgroundColor = span.background_color ?? "#ffffff";
+        const previewFontSize = pdfFontSizeForRect(style.size, rect.height, scale);
         return (
           <div key={span.id}>
             {hasPreview && (
@@ -180,11 +181,14 @@ export function TextOverlay({ page, canvasSize }: TextOverlayProps) {
                       style={{
                         color: style.color,
                         fontFamily: pdfFontToCssFamily(style.font),
-                        fontSize: Math.max(8, style.size * scale),
-                        fontWeight: style.bold ? 700 : 400,
-                        fontStyle: style.italic ? "italic" : "normal",
+                        fontSize: previewFontSize,
+                        fontWeight: pdfFontToCssWeight(style.font, style.bold),
+                        fontStyle: pdfFontToCssStyle(style.font, style.italic),
                         textDecoration: style.underline ? "underline" : "none",
-                        lineHeight: 1.12,
+                        lineHeight: pdfLineHeightForRect(previewFontSize, rect.height),
+                        letterSpacing: 0,
+                        WebkitFontSmoothing: "antialiased",
+                        fontSynthesis: "none",
                         textShadow: style.color.toLowerCase() === "#ffffff" ? "0 0 1px rgba(0,0,0,0.25)" : "0 0 1px rgba(255,255,255,0.35)",
                       }}
                     >
