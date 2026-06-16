@@ -104,28 +104,24 @@ def _sample_background(page: fitz.Page, rect: fitz.Rect) -> BackgroundSample:
         pixmap = page.get_pixmap(matrix=fitz.Matrix(scale, scale), clip=clip, alpha=False, colorspace=fitz.csRGB)
         samples: list[tuple[int, int, int]] = []
         for y in range(pixmap.height):
-            page_y = clip.y0 + (y + 0.5) / scale
             for x in range(pixmap.width):
-                page_x = clip.x0 + (x + 0.5) / scale
-                if rect.contains(fitz.Point(page_x, page_y)):
-                    continue
                 offset = (y * pixmap.width + x) * pixmap.n
                 samples.append(tuple(pixmap.samples[offset : offset + 3]))
         if not samples:
             return BackgroundSample((1, 1, 1), False)
 
-        buckets = Counter((red // 16, green // 16, blue // 16) for red, green, blue in samples)
+        buckets = Counter((red // 8, green // 8, blue // 8) for red, green, blue in samples)
         dominant_bucket, dominant_count = buckets.most_common(1)[0]
         dominant = [
             color
             for color in samples
-            if (color[0] // 16, color[1] // 16, color[2] // 16) == dominant_bucket
+            if (color[0] // 8, color[1] // 8, color[2] // 8) == dominant_bucket
         ]
-        average = tuple(sum(color[channel] for color in dominant) / len(dominant) for channel in range(3))
-        normalized = tuple(channel / 255 for channel in average)
+        picked = Counter(dominant).most_common(1)[0][0]
+        normalized = tuple(channel / 255 for channel in picked)
         is_white = all(channel >= 0.965 for channel in normalized)
         confidence = dominant_count / len(samples)
-        return BackgroundSample((1, 1, 1) if is_white else normalized, not is_white or confidence < 0.55)
+        return BackgroundSample((1, 1, 1) if is_white else normalized, confidence < 0.55)
     except Exception:
         return BackgroundSample((1, 1, 1), False)
 

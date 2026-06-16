@@ -91,17 +91,17 @@ def _sample_span_background(
     if not samples:
         return "#ffffff", True
 
-    buckets = Counter((red // 12, green // 12, blue // 12) for red, green, blue in samples)
+    buckets = Counter((red // 8, green // 8, blue // 8) for red, green, blue in samples)
     dominant_bucket, dominant_count = buckets.most_common(1)[0]
     dominant = [
         color
         for color in samples
-        if (color[0] // 12, color[1] // 12, color[2] // 12) == dominant_bucket
+        if (color[0] // 8, color[1] // 8, color[2] // 8) == dominant_bucket
     ]
-    average = tuple(round(sum(color[channel] for color in dominant) / len(dominant)) for channel in range(3))
-    if all(channel >= 247 for channel in average):
+    picked = Counter(dominant).most_common(1)[0][0]
+    if all(channel >= 247 for channel in picked):
         return "#ffffff", dominant_count / len(samples) < 0.55
-    return _rgb_to_hex(average), dominant_count / len(samples) < 0.55
+    return _rgb_to_hex(picked), dominant_count / len(samples) < 0.55
 
 
 def _line_direction(line: dict) -> str:

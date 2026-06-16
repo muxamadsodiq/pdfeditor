@@ -53,6 +53,13 @@ function sampleCanvasBackground(canvas: HTMLCanvasElement | null, rect: { left: 
     [rect.left + 3, rect.top + rect.height - 3],
     [rect.left + rect.width - 3, rect.top + rect.height - 3],
   ];
+
+  for (const xFraction of [0.2, 0.35, 0.5, 0.65, 0.8]) {
+    for (const yFraction of [0.2, 0.35, 0.5, 0.65, 0.8]) {
+      points.push([rect.left + rect.width * xFraction, rect.top + rect.height * yFraction]);
+    }
+  }
+
   const samples: Array<[number, number, number]> = [];
   for (const [cssX, cssY] of points) {
     const x = Math.max(0, Math.min(canvas.width - 1, Math.round(cssX * ratioX)));
@@ -65,11 +72,21 @@ function sampleCanvasBackground(canvas: HTMLCanvasElement | null, rect: { left: 
     }
   }
   if (samples.length === 0) return "#ffffff";
-  const average = samples.reduce(
-    (sum, sample) => [sum[0] + sample[0], sum[1] + sample[1], sum[2] + sample[2]] as [number, number, number],
-    [0, 0, 0],
-  );
-  return `rgb(${Math.round(average[0] / samples.length)}, ${Math.round(average[1] / samples.length)}, ${Math.round(average[2] / samples.length)})`;
+
+  const buckets = new Map<string, Array<[number, number, number]>>();
+  for (const sample of samples) {
+    const key = `${Math.floor(sample[0] / 8)},${Math.floor(sample[1] / 8)},${Math.floor(sample[2] / 8)}`;
+    buckets.set(key, [...(buckets.get(key) ?? []), sample]);
+  }
+  const dominant = [...buckets.values()].sort((a, b) => b.length - a.length)[0] ?? samples;
+  const exactCounts = new Map<string, { color: [number, number, number]; count: number }>();
+  for (const color of dominant) {
+    const key = color.join(",");
+    const existing = exactCounts.get(key);
+    exactCounts.set(key, { color, count: (existing?.count ?? 0) + 1 });
+  }
+  const picked = [...exactCounts.values()].sort((a, b) => b.count - a.count)[0]?.color ?? dominant[0];
+  return `rgb(${picked[0]}, ${picked[1]}, ${picked[2]})`;
 }
 
 function EraseObjectPreview({

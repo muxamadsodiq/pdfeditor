@@ -156,6 +156,12 @@ function sampleCanvasBackground(canvas: HTMLCanvasElement, rect: OverlayRect): s
     [rect.left + rect.width - 3, rect.top + rect.height - 3],
   ];
 
+  for (const xFraction of [0.2, 0.35, 0.5, 0.65, 0.8]) {
+    for (const yFraction of [0.2, 0.35, 0.5, 0.65, 0.8]) {
+      samplePoints.push([rect.left + rect.width * xFraction, rect.top + rect.height * yFraction]);
+    }
+  }
+
   const samples: Array<[number, number, number]> = [];
   for (const [cssX, cssY] of samplePoints) {
     const x = Math.max(0, Math.min(canvas.width - 1, Math.round(cssX * ratioX)));
@@ -169,16 +175,18 @@ function sampleCanvasBackground(canvas: HTMLCanvasElement, rect: OverlayRect): s
   }
 
   if (samples.length === 0) return null;
-  const [red, green, blue] = samples
-    .sort((a, b) => colorDistance(a, medianColor(samples)) - colorDistance(b, medianColor(samples)))[0];
+  const buckets = new Map<string, Array<[number, number, number]>>();
+  for (const sample of samples) {
+    const key = `${Math.floor(sample[0] / 8)},${Math.floor(sample[1] / 8)},${Math.floor(sample[2] / 8)}`;
+    buckets.set(key, [...(buckets.get(key) ?? []), sample]);
+  }
+  const dominant = [...buckets.values()].sort((a, b) => b.length - a.length)[0] ?? samples;
+  const exactCounts = new Map<string, { color: [number, number, number]; count: number }>();
+  for (const color of dominant) {
+    const key = color.join(",");
+    const existing = exactCounts.get(key);
+    exactCounts.set(key, { color, count: (existing?.count ?? 0) + 1 });
+  }
+  const [red, green, blue] = [...exactCounts.values()].sort((a, b) => b.count - a.count)[0]?.color ?? dominant[0];
   return `rgb(${red}, ${green}, ${blue})`;
-}
-
-function medianColor(samples: Array<[number, number, number]>): [number, number, number] {
-  const channel = (index: number) => [...samples].map((sample) => sample[index]).sort((a, b) => a - b)[Math.floor(samples.length / 2)];
-  return [channel(0), channel(1), channel(2)];
-}
-
-function colorDistance(a: [number, number, number], b: [number, number, number]) {
-  return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
 }
