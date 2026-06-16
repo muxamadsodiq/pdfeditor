@@ -288,11 +288,12 @@ def _decode_image_data(image_data: str) -> bytes:
         raise ValueError("Image data is invalid.") from exc
 
     allowed_headers = {
-        "data:image/png;base64",
-        "data:image/jpeg;base64",
-        "data:image/webp;base64",
+        "data:image/png;base64": "png",
+        "data:image/jpeg;base64": "jpeg",
+        "data:image/webp;base64": "webp",
     }
-    if header.lower() not in allowed_headers:
+    image_type = allowed_headers.get(header.lower())
+    if image_type is None:
         raise ValueError("Only PNG, JPEG, and WebP images are supported.")
     try:
         decoded = base64.b64decode(payload, validate=True)
@@ -301,10 +302,16 @@ def _decode_image_data(image_data: str) -> bytes:
     if not decoded or len(decoded) > MAX_IMAGE_BYTES:
         raise ValueError("Image must be smaller than 8 MB.")
     try:
-        fitz.Pixmap(decoded)
+        with fitz.open(stream=decoded, filetype=image_type) as image_document:
+            if image_document.page_count < 1:
+                raise ValueError("Image has no drawable page.")
+            pixmap = image_document[0].get_pixmap(alpha=True)
+            normalized = pixmap.tobytes("png")
     except Exception as exc:
         raise ValueError("Image data could not be opened.") from exc
-    return decoded
+    if not normalized or len(normalized) > MAX_IMAGE_BYTES:
+        raise ValueError("Image must be smaller than 8 MB.")
+    return normalized
 
 
 def _insert_image(page: fitz.Page, rect: fitz.Rect, edit: PdfEditOperation) -> bool:
