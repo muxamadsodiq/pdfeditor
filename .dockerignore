@@ -1,0 +1,7 @@
+**/.next
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+**/.DS_Store
+backend/storage/documents/*
+backend/storage/thumbnails/*
