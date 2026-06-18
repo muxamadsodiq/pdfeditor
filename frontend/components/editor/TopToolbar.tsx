@@ -33,6 +33,7 @@ interface TopToolbarProps {
   onSelectTool: (tool: ActiveTool) => void;
   onImageSelected: (file: File) => void;
   onOpenSignature: () => void;
+  onHome: () => void;
 }
 
 export function TopToolbar({
@@ -49,6 +50,7 @@ export function TopToolbar({
   onSelectTool,
   onImageSelected,
   onOpenSignature,
+  onHome,
 }: TopToolbarProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -74,7 +76,12 @@ export function TopToolbar({
 
   return (
     <header className="flex min-h-14 flex-none items-center gap-2 overflow-x-auto border-b border-blue-100 bg-white px-3 py-2 text-slate-900 shadow-sm">
-      <div className="flex flex-none items-center gap-2 pr-2">
+      <button
+        type="button"
+        className="flex flex-none items-center gap-2 rounded-md pr-2 text-left hover:bg-emerald-50"
+        onClick={onHome}
+        title="Home page"
+      >
         <div className="flex h-9 w-9 flex-none items-center justify-center rounded-md bg-emerald-500 text-white">
           <FileText className="h-5 w-5" />
         </div>
@@ -82,7 +89,7 @@ export function TopToolbar({
           <div className="truncate text-sm font-semibold text-slate-950">Yusuf PDF</div>
           <div className="text-xs text-slate-500">PDF editor</div>
         </div>
-      </div>
+      </button>
 
       <div className="flex flex-none items-center gap-1">
         <Button variant="outline" size="sm" className="flex-none border-blue-200 bg-white text-blue-700 hover:bg-blue-50 hover:text-blue-800" onClick={() => inputRef.current?.click()}>

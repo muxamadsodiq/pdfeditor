@@ -5,11 +5,9 @@ import { ArrowRight, CheckCircle2, Download, LoaderCircle, Save, TriangleAlert }
 import { useEffect, useState } from "react";
 
 import { ErrorMessage } from "@/components/editor/ErrorMessage";
-import { LeftPageSidebar } from "@/components/editor/LeftPageSidebar";
 import { LoadingOverlay } from "@/components/editor/LoadingOverlay";
 import { PdfWorkspace } from "@/components/editor/PdfWorkspace";
 import { QuickPropertiesBar } from "@/components/editor/QuickPropertiesBar";
-import { RightPropertiesPanel } from "@/components/editor/RightPropertiesPanel";
 import { SignatureModal } from "@/components/editor/SignatureModal";
 import { TopToolbar } from "@/components/editor/TopToolbar";
 import { UploadScreen } from "@/components/editor/UploadScreen";
@@ -302,6 +300,7 @@ function EditorApp() {
               onSelectTool={handleSelectTool}
               onImageSelected={(file) => readImage(file)}
               onOpenSignature={() => setSignatureOpen(true)}
+              onHome={handleBackToMainMenu}
             />
           )}
           {document && <QuickPropertiesBar />}
@@ -312,7 +311,6 @@ function EditorApp() {
           )}
           <div className="relative flex min-h-0 flex-1">
             {uploadMutation.isPending && <LoadingOverlay label="Uploading and preparing PDF..." />}
-            {document && <LeftPageSidebar document={document} activePage={activePage} onSelectPage={handleSelectPage} />}
             <div className="relative min-w-0 flex-1">
               {!document ? (
                 <>
@@ -342,7 +340,6 @@ function EditorApp() {
                 </>
               )}
             </div>
-            {document && <RightPropertiesPanel document={document} zoom={zoom} />}
           </div>
         </>
       {document && !downloadPageOpen && !downloadCompleteOpen && (
@@ -376,6 +373,7 @@ function EditorApp() {
           onFileNameChange={setDownloadFileName}
           onDownload={handleDownload}
           onContinueEditing={handleBackToEditor}
+          onHome={handleBackToMainMenu}
         />
       )}
     </div>
@@ -415,22 +413,16 @@ function SaveResultModal({
   onFileNameChange,
   onDownload,
   onContinueEditing,
+  onHome,
 }: {
   fileName: string;
   onFileNameChange: (fileName: string) => void;
   onDownload: () => void;
   onContinueEditing: () => void;
+  onHome: () => void;
 }) {
   return (
     <div className="fixed inset-0 z-50 overflow-auto bg-white px-4 py-10">
-      <button
-        type="button"
-        aria-label="Continue editing"
-        className="fixed left-6 top-6 text-5xl font-light leading-none text-slate-300 hover:text-slate-500"
-        onClick={onContinueEditing}
-      >
-        ×
-      </button>
       <div className="mx-auto flex min-h-full w-full max-w-6xl items-center justify-center">
         <section className="grid w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl md:grid-cols-[1fr_320px]">
           <div className="bg-slate-50 px-6 py-8 text-center md:px-14 md:py-12">
@@ -455,9 +447,16 @@ function SaveResultModal({
               />
             </div>
 
-            <Button className="mt-7 h-16 min-w-[300px] rounded-md bg-emerald-500 px-9 text-2xl font-bold text-white shadow-lg shadow-emerald-100 hover:bg-emerald-600" onClick={onDownload}>
+            <Button className="mx-auto mt-7 flex h-16 min-w-[300px] rounded-md bg-emerald-500 px-9 text-2xl font-bold text-white shadow-lg shadow-emerald-100 hover:bg-emerald-600" onClick={onDownload}>
               <Download className="h-7 w-7" />
               Download
+            </Button>
+            <Button
+              variant="ghost"
+              className="mx-auto mt-4 flex h-12 min-w-[300px] rounded-md bg-emerald-50 text-lg font-semibold text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700"
+              onClick={onHome}
+            >
+              Home page
             </Button>
           </div>
 
