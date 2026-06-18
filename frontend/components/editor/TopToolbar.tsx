@@ -2,18 +2,15 @@
 
 import { ChangeEvent, useRef } from "react";
 import {
-  Download,
   FileImage,
   FileSignature,
   FileText,
   Highlighter,
-  LoaderCircle,
   Maximize,
   Minus,
   MousePointer2,
   PenLine,
   Plus,
-  Save,
   Scissors,
   Type,
   Upload,
@@ -31,12 +28,7 @@ interface TopToolbarProps {
   activeTool: ActiveTool;
   canEditText: boolean;
   editTextDisabledMessage: string;
-  unsavedChanges: boolean;
-  hasEditOperations: boolean;
-  isApplying: boolean;
   canDownload: boolean;
-  onApplyChanges: () => void;
-  onDownload: () => void;
   onToggleEditMode: () => void;
   onSelectTool: (tool: ActiveTool) => void;
   onImageSelected: (file: File) => void;
@@ -52,12 +44,7 @@ export function TopToolbar({
   activeTool,
   canEditText,
   editTextDisabledMessage,
-  unsavedChanges,
-  hasEditOperations,
-  isApplying,
   canDownload,
-  onApplyChanges,
-  onDownload,
   onToggleEditMode,
   onSelectTool,
   onImageSelected,
@@ -81,27 +68,29 @@ export function TopToolbar({
   const toolButton = (tool: ActiveTool) =>
     activeTool === tool ? "secondary" as const : "ghost" as const;
   const toolClass = (tool: ActiveTool) =>
-    activeTool === tool ? "bg-white text-emerald-950 hover:bg-emerald-50" : "text-white hover:bg-white/10 hover:text-white";
+    activeTool === tool
+      ? "border border-blue-500 bg-blue-50 text-blue-700 shadow-[0_0_0_1px_rgba(59,130,246,0.25)] hover:bg-blue-100"
+      : "border border-blue-200 bg-white text-blue-700 hover:bg-blue-50 hover:text-blue-800";
 
   return (
-    <header className="flex min-h-14 flex-none items-center gap-3 overflow-x-auto border-b border-emerald-950/20 bg-emerald-950 px-3 py-2 text-white">
-      <div className="flex flex-none items-center gap-2 pr-1">
-        <div className="flex h-9 w-9 flex-none items-center justify-center rounded-md bg-emerald-500 text-emerald-950">
+    <header className="flex min-h-14 flex-none items-center gap-2 overflow-x-auto border-b border-blue-100 bg-white px-3 py-2 text-slate-900 shadow-sm">
+      <div className="flex flex-none items-center gap-2 pr-2">
+        <div className="flex h-9 w-9 flex-none items-center justify-center rounded-md bg-emerald-500 text-white">
           <FileText className="h-5 w-5" />
         </div>
-        <div className="hidden min-w-[132px] xl:block">
-          <div className="truncate text-sm font-semibold">Yusuf PDF Editor</div>
-          <div className="text-xs text-white/55">Free public editor</div>
+        <div className="hidden min-w-[96px] xl:block">
+          <div className="truncate text-sm font-semibold text-slate-950">Yusuf PDF</div>
+          <div className="text-xs text-slate-500">PDF editor</div>
         </div>
       </div>
 
       <div className="flex flex-none items-center gap-1">
-        <Button variant="secondary" size="sm" className="flex-none bg-emerald-100 text-emerald-950 hover:bg-white" onClick={() => inputRef.current?.click()}>
+        <Button variant="outline" size="sm" className="flex-none border-blue-200 bg-white text-blue-700 hover:bg-blue-50 hover:text-blue-800" onClick={() => inputRef.current?.click()}>
           <Upload className="h-4 w-4" />
           Upload PDF
         </Button>
         <input ref={inputRef} type="file" accept="application/pdf,.pdf" className="hidden" onChange={handleUpload} />
-        <div className="mx-2 h-6 w-px bg-white/15" />
+        <div className="mx-1 h-8 w-px bg-blue-100" />
         <Button
           variant={toolButton("select")}
           size="sm"
@@ -152,38 +141,16 @@ export function TopToolbar({
       </div>
 
       <div className="ml-auto flex flex-none items-center gap-1">
-        <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 hover:text-white" onClick={onZoomOut}>
+        <Button variant="ghost" size="icon" className="text-slate-600 hover:bg-blue-50 hover:text-blue-700" onClick={onZoomOut}>
           <Minus className="h-4 w-4" />
         </Button>
-        <div className="w-14 text-center text-sm tabular-nums">{Math.round(zoom * 100)}%</div>
-        <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 hover:text-white" onClick={onZoomIn}>
+        <div className="w-14 text-center text-sm tabular-nums text-slate-700">{Math.round(zoom * 100)}%</div>
+        <Button variant="ghost" size="icon" className="text-slate-600 hover:bg-blue-50 hover:text-blue-700" onClick={onZoomIn}>
           <Plus className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white" onClick={onFitPage}>
+        <Button variant="ghost" size="sm" className="text-slate-600 hover:bg-blue-50 hover:text-blue-700" onClick={onFitPage}>
           <Maximize className="h-4 w-4" />
           Fit page
-        </Button>
-        <div className="mx-2 h-6 w-px bg-white/15" />
-        {unsavedChanges && <div className="mr-1 rounded bg-emerald-400/15 px-2 py-1 text-xs text-emerald-100">Unsaved changes</div>}
-        <Button
-          variant={unsavedChanges ? "default" : "ghost"}
-          size="sm"
-          className={unsavedChanges ? "bg-emerald-500 text-emerald-950 hover:bg-emerald-400" : "text-white hover:bg-white/10 hover:text-white"}
-          disabled={!unsavedChanges || !hasEditOperations || isApplying}
-          onClick={onApplyChanges}
-        >
-          {isApplying ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          {isApplying ? "Applying changes..." : "Apply Changes"}
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-white hover:bg-white/10 hover:text-white"
-          disabled={!canDownload || isApplying}
-          onClick={onDownload}
-        >
-          <Download className="h-4 w-4" />
-          Download
         </Button>
       </div>
     </header>

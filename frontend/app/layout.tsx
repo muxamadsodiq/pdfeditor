@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Yusuf PDF Editor",
-  description: "Free public PDF editor foundation",
+  title: "Yusuf PDF",
+  description: "Online PDF editor",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

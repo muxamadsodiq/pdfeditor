@@ -1,7 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider, useMutation } from "@tanstack/react-query";
-import { CheckCircle2, Download, Home, TriangleAlert } from "lucide-react";
+import { ArrowRight, CheckCircle2, Download, LoaderCircle, Save, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { ErrorMessage } from "@/components/editor/ErrorMessage";
@@ -204,8 +204,6 @@ function EditorApp() {
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(objectUrl);
-      setDownloadPageOpen(false);
-      setDownloadCompleteOpen(true);
     } catch {
       setError("Could not download this PDF. Please try again.");
     }
@@ -289,26 +287,23 @@ function EditorApp() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
       <>
-          <TopToolbar
-            zoom={zoom}
-            onUpload={handleUpload}
-            onZoomIn={zoomIn}
-            onZoomOut={zoomOut}
-            onFitPage={fitPage}
-            activeTool={activeTool}
-            canEditText={canEditText}
-            editTextDisabledMessage={editTextDisabledMessage}
-            unsavedChanges={toolbarUnsaved}
-            hasEditOperations={hasOperations}
-            isApplying={applyMutation.isPending}
-            canDownload={Boolean(document)}
-            onApplyChanges={handleApplyChanges}
-            onDownload={handleDownload}
-            onToggleEditMode={() => setEditMode(!editMode)}
-            onSelectTool={handleSelectTool}
-            onImageSelected={(file) => readImage(file)}
-            onOpenSignature={() => setSignatureOpen(true)}
-          />
+          {document && (
+            <TopToolbar
+              zoom={zoom}
+              onUpload={handleUpload}
+              onZoomIn={zoomIn}
+              onZoomOut={zoomOut}
+              onFitPage={fitPage}
+              activeTool={activeTool}
+              canEditText={canEditText}
+              editTextDisabledMessage={editTextDisabledMessage}
+              canDownload={Boolean(document)}
+              onToggleEditMode={() => setEditMode(!editMode)}
+              onSelectTool={handleSelectTool}
+              onImageSelected={(file) => readImage(file)}
+              onOpenSignature={() => setSignatureOpen(true)}
+            />
+          )}
           {document && <QuickPropertiesBar />}
           {document && (
             <div className="flex-none border-b border-border bg-white px-3 py-1.5 text-center text-xs text-muted-foreground">
@@ -317,7 +312,7 @@ function EditorApp() {
           )}
           <div className="relative flex min-h-0 flex-1">
             {uploadMutation.isPending && <LoadingOverlay label="Uploading and preparing PDF..." />}
-            <LeftPageSidebar document={document} activePage={activePage} onSelectPage={handleSelectPage} />
+            {document && <LeftPageSidebar document={document} activePage={activePage} onSelectPage={handleSelectPage} />}
             <div className="relative min-w-0 flex-1">
               {!document ? (
                 <>
@@ -347,9 +342,17 @@ function EditorApp() {
                 </>
               )}
             </div>
-            <RightPropertiesPanel document={document} zoom={zoom} />
+            {document && <RightPropertiesPanel document={document} zoom={zoom} />}
           </div>
         </>
+      {document && !downloadPageOpen && !downloadCompleteOpen && (
+        <BottomApplyBar
+          hasChanges={toolbarUnsaved}
+          canApply={hasOperations}
+          isApplying={applyMutation.isPending}
+          onApply={handleApplyChanges}
+        />
+      )}
       <SignatureModal
         open={signatureOpen}
         onClose={() => setSignatureOpen(false)}
@@ -375,9 +378,34 @@ function EditorApp() {
           onContinueEditing={handleBackToEditor}
         />
       )}
-      {downloadCompleteOpen && document && (
-        <DownloadCompletePage fileName={normalizePdfFileName(downloadFileName || defaultEditedFileName(document.file_name))} onBackToMainMenu={handleBackToMainMenu} />
-      )}
+    </div>
+  );
+}
+
+function BottomApplyBar({
+  hasChanges,
+  canApply,
+  isApplying,
+  onApply,
+}: {
+  hasChanges: boolean;
+  canApply: boolean;
+  isApplying: boolean;
+  onApply: () => void;
+}) {
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center bg-amber-50/95 px-4 py-4 shadow-[0_-1px_0_rgba(15,23,42,0.08)]">
+      <div className="pointer-events-auto rounded-t-2xl bg-amber-100 px-5 py-4 shadow-sm">
+        <Button
+          className="h-12 min-w-[230px] rounded-md bg-emerald-500 px-7 text-lg font-bold text-white hover:bg-emerald-600 disabled:bg-slate-300 disabled:text-slate-500"
+          disabled={!hasChanges || !canApply || isApplying}
+          onClick={onApply}
+        >
+          {isApplying ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+          {isApplying ? "Applying changes..." : "Apply changes"}
+          {!isApplying && <ArrowRight className="h-5 w-5" />}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -394,64 +422,65 @@ function SaveResultModal({
   onContinueEditing: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 px-4">
-      <section className="w-full max-w-md rounded-lg border border-emerald-200 bg-white p-5 shadow-xl">
-        <div className="mb-5 flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-md bg-emerald-100 text-emerald-700">
-            <CheckCircle2 className="h-5 w-5" />
+    <div className="fixed inset-0 z-50 overflow-auto bg-white px-4 py-10">
+      <button
+        type="button"
+        aria-label="Continue editing"
+        className="fixed left-6 top-6 text-5xl font-light leading-none text-slate-300 hover:text-slate-500"
+        onClick={onContinueEditing}
+      >
+        ×
+      </button>
+      <div className="mx-auto flex min-h-full w-full max-w-6xl items-center justify-center">
+        <section className="grid w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl md:grid-cols-[1fr_320px]">
+          <div className="bg-slate-50 px-6 py-8 text-center md:px-14 md:py-12">
+            <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <CheckCircle2 className="h-8 w-8" />
+            </div>
+            <h1 className="text-3xl font-bold text-slate-950">Your document is ready</h1>
+            <p className="mt-2 text-base text-slate-500">Changes saved. Choose a filename and download your edited PDF.</p>
+
+            <div className="mx-auto mt-8 max-w-xl rounded-lg border border-slate-200 bg-white px-5 py-4">
+              <label className="block text-left text-sm font-medium text-slate-700" htmlFor="download-file-name">
+                File name
+              </label>
+              <input
+                id="download-file-name"
+                aria-label="Download filename"
+                value={fileName}
+                onChange={(event) => onFileNameChange(event.target.value)}
+                className="mt-2 h-12 w-full rounded-md border border-slate-200 bg-white px-3 text-base font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                placeholder="edited.pdf"
+                autoFocus
+              />
+            </div>
+
+            <Button className="mt-7 h-16 min-w-[300px] rounded-md bg-emerald-500 px-9 text-2xl font-bold text-white shadow-lg shadow-emerald-100 hover:bg-emerald-600" onClick={onDownload}>
+              <Download className="h-7 w-7" />
+              Download
+            </Button>
           </div>
-          <div className="min-w-0">
-            <h1 className="text-xl font-semibold text-emerald-950">Changes saved</h1>
-            <p className="mt-1 text-sm text-emerald-800/75">Your edited PDF is ready to download.</p>
-          </div>
-        </div>
 
-        <label className="block text-sm font-medium text-emerald-950" htmlFor="download-file-name">
-          Output filename
-        </label>
-        <input
-          id="download-file-name"
-          aria-label="Download filename"
-          value={fileName}
-          onChange={(event) => onFileNameChange(event.target.value)}
-          className="mt-2 h-11 w-full rounded-md border border-emerald-200 bg-white px-3 text-base text-slate-950 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
-          placeholder="edited.pdf"
-          autoFocus
-        />
-
-        <Button className="mt-4 h-11 w-full text-base" onClick={onDownload}>
-          <Download className="h-5 w-5" />
-          Download PDF
-        </Button>
-
-        <Button variant="ghost" className="mt-3 w-full" onClick={onContinueEditing}>
-          Continue editing
-        </Button>
-      </section>
-    </div>
-  );
-}
-
-function DownloadCompletePage({
-  fileName,
-  onBackToMainMenu,
-}: {
-  fileName: string;
-  onBackToMainMenu: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/35 px-4">
-      <section className="w-full max-w-md rounded-lg border border-emerald-200 bg-white p-6 text-center shadow-xl">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-md bg-emerald-100 text-emerald-700">
-          <CheckCircle2 className="h-6 w-6" />
-        </div>
-        <h1 className="mt-4 text-2xl font-semibold text-emerald-950">Downloaded</h1>
-        <p className="mt-2 text-sm text-emerald-800/75">{fileName} has been downloaded.</p>
-        <Button className="mt-6 h-11 w-full text-base" onClick={onBackToMainMenu}>
-          <Home className="h-5 w-5" />
-          Back to main menu
-        </Button>
-      </section>
+          <aside className="border-t border-slate-200 bg-white p-7 md:border-l md:border-t-0">
+            <h2 className="mb-5 text-sm font-bold uppercase tracking-wide text-slate-400">Continue editing this document</h2>
+            <button
+              type="button"
+              className="flex h-12 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-4 text-left text-lg font-semibold text-slate-900 hover:bg-emerald-50"
+              onClick={onContinueEditing}
+            >
+              Edit
+              <ArrowRight className="h-5 w-5 text-slate-400" />
+            </button>
+            <button
+              type="button"
+              className="mt-4 flex h-12 w-full items-center justify-center rounded-md bg-emerald-50 text-lg font-semibold text-emerald-600 hover:bg-emerald-100"
+              onClick={onContinueEditing}
+            >
+              Back to editing
+            </button>
+          </aside>
+        </section>
+      </div>
     </div>
   );
 }
