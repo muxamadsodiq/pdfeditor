@@ -1,6 +1,6 @@
 "use client";
 
-import { Bold, Check, Italic, Trash2, Underline, X } from "lucide-react";
+import { Bold, Check, Copy, Italic, Link, Move, Palette, Trash2, Type, Underline, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { OverlayRect } from "@/lib/coordinates";
@@ -20,95 +20,103 @@ export function FloatingTextToolbar({ rect, canvasWidth, canvasHeight, style }: 
   const applySelectedEdit = useEditorStore((state) => state.applySelectedEdit);
   const cancelSelectedEdit = useEditorStore((state) => state.cancelSelectedEdit);
 
-  const toolbarHeight = 38;
-  const toolbarWidth = 292;
-  const top = rect.top > toolbarHeight + 8 ? rect.top - toolbarHeight - 8 : Math.min(canvasHeight - toolbarHeight, rect.top + rect.height + 8);
+  const toolbarHeight = 48;
+  const toolbarWidth = 612;
+  const top = rect.top > toolbarHeight + 10 ? rect.top - toolbarHeight - 10 : Math.min(canvasHeight - toolbarHeight, rect.top + rect.height + 10);
   const left = Math.max(4, Math.min(rect.left, canvasWidth - toolbarWidth - 4));
 
   return (
     <div
-      className="absolute z-40 flex h-9 items-center gap-1 rounded-md border border-border bg-neutral-950 px-2 text-white shadow-lg"
+      className="absolute z-[80] flex h-12 items-center overflow-hidden rounded-md border border-blue-500 bg-white text-blue-600 shadow-[0_2px_14px_rgba(37,99,235,0.25)]"
       style={{ left, top: Math.max(4, top) }}
       onClick={(event) => event.stopPropagation()}
       onPointerDown={(event) => event.stopPropagation()}
     >
-      <input
-        aria-label="Font size"
-        className="h-6 w-12 rounded border border-white/20 bg-white/10 px-1 text-xs outline-none"
-        type="number"
-        min={6}
-        max={96}
-        value={Math.round(style.size)}
-        onChange={(event) => updateSelectedStyle({ size: Number(event.target.value) || style.size })}
-      />
-      <input
-        aria-label="Text color"
-        className="h-6 w-7 cursor-pointer rounded border border-white/20 bg-transparent p-0"
-        type="color"
-        value={style.color}
-        onChange={(event) => updateSelectedStyle({ color: event.target.value })}
-      />
+      <ToolbarButton active={style.bold} onClick={() => updateSelectedStyle({ bold: !style.bold })} title="Bold">
+        <Bold className="h-5 w-5" />
+      </ToolbarButton>
+      <ToolbarButton active={style.italic} onClick={() => updateSelectedStyle({ italic: !style.italic })} title="Italic">
+        <Italic className="h-5 w-5" />
+      </ToolbarButton>
+      <label className="flex h-12 items-center gap-1 border-r border-blue-200 px-3 text-blue-600">
+        <Type className="h-5 w-5" />
+        <input
+          aria-label="Font size"
+          className="h-8 w-12 rounded border border-blue-200 bg-white px-1 text-sm text-slate-900 outline-none focus:border-blue-500"
+          type="number"
+          min={6}
+          max={96}
+          value={Math.round(style.size)}
+          onChange={(event) => updateSelectedStyle({ size: Number(event.target.value) || style.size })}
+        />
+      </label>
+      <label className="flex h-12 cursor-pointer items-center gap-1 border-r border-blue-200 px-3 text-blue-600">
+        <Palette className="h-5 w-5" />
+        <input
+          aria-label="Text color"
+          className="h-7 w-8 cursor-pointer rounded border border-blue-200 bg-white p-0.5"
+          type="color"
+          value={style.color}
+          onChange={(event) => updateSelectedStyle({ color: event.target.value })}
+        />
+      </label>
+      <ToolbarButton active={style.underline} onClick={() => updateSelectedStyle({ underline: !style.underline })} title="Underline">
+        <Underline className="h-5 w-5" />
+      </ToolbarButton>
+      <ToolbarButton title="Link">
+        <Link className="h-5 w-5" />
+      </ToolbarButton>
+      <ToolbarButton title="Move">
+        <Move className="h-5 w-5" />
+      </ToolbarButton>
+      <ToolbarButton title="Copy">
+        <Copy className="h-5 w-5" />
+      </ToolbarButton>
+      <ToolbarButton onClick={deleteSelectedSpan} title="Delete text">
+        <Trash2 className="h-5 w-5" />
+      </ToolbarButton>
+      <ToolbarButton onClick={cancelSelectedEdit} title="Cancel">
+        <X className="h-5 w-5" />
+      </ToolbarButton>
       <Button
         variant="ghost"
         size="icon"
-        className={cn("h-7 w-7 text-white hover:bg-white/15 hover:text-white", style.bold && "bg-white/20")}
-        onClick={() => updateSelectedStyle({ bold: !style.bold })}
-        title="Bold"
-        aria-label="Bold"
-      >
-        <Bold className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className={cn("h-7 w-7 text-white hover:bg-white/15 hover:text-white", style.italic && "bg-white/20")}
-        onClick={() => updateSelectedStyle({ italic: !style.italic })}
-        title="Italic"
-        aria-label="Italic"
-      >
-        <Italic className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className={cn("h-7 w-7 text-white hover:bg-white/15 hover:text-white", style.underline && "bg-white/20")}
-        onClick={() => updateSelectedStyle({ underline: !style.underline })}
-        title="Underline"
-        aria-label="Underline"
-      >
-        <Underline className="h-4 w-4" />
-      </Button>
-      <div className="mx-1 h-5 w-px bg-white/20" />
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-7 w-7 text-white hover:bg-white/15 hover:text-white"
-        onClick={deleteSelectedSpan}
-        title="Delete text"
-        aria-label="Delete text"
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-7 w-7 text-white hover:bg-white/15 hover:text-white"
-        onClick={cancelSelectedEdit}
-        title="Cancel"
-        aria-label="Cancel"
-      >
-        <X className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="secondary"
-        size="icon"
-        className="h-7 w-7"
+        className="h-12 w-12 rounded-none border-l border-blue-200 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
         onClick={applySelectedEdit}
         title="Apply selected edit"
         aria-label="Apply selected edit"
       >
-        <Check className="h-4 w-4" />
+        <Check className="h-5 w-5" />
       </Button>
     </div>
+  );
+}
+
+function ToolbarButton({
+  active = false,
+  onClick,
+  title,
+  children,
+}: {
+  active?: boolean;
+  onClick?: () => void;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className={cn(
+        "h-12 w-12 rounded-none border-r border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700",
+        active && "bg-blue-50 text-blue-700",
+      )}
+      onClick={onClick}
+      title={title}
+      aria-label={title}
+      type="button"
+    >
+      {children}
+    </Button>
   );
 }

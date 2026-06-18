@@ -32,6 +32,10 @@ export function RightPropertiesPanel({ document, zoom }: RightPropertiesPanelPro
   const setDrawingStyle = useEditorStore((state) => state.setDrawingStyle);
   const setHighlightStyle = useEditorStore((state) => state.setHighlightStyle);
 
+  if (selectedSpan) {
+    return null;
+  }
+
   if (selectedObject) {
     const [x0, y0, x1, y1] = selectedObject.bbox;
     const updateRect = (field: "x" | "y" | "width" | "height", raw: string) => {
@@ -146,104 +150,6 @@ export function RightPropertiesPanel({ document, zoom }: RightPropertiesPanelPro
           <div className="sticky bottom-0 border-t border-border bg-white pt-3">
             <PanelSectionTitle>Actions</PanelSectionTitle>
             <Button variant="destructive" className="w-full" onClick={deleteSelectedObject}><Trash2 className="h-4 w-4" />Delete object</Button>
-          </div>
-        </div>
-      </aside>
-    );
-  }
-
-  if (selectedSpan) {
-    const style = editingStyle ?? defaultTextStyle(selectedSpan);
-    const [x0, y0, x1, y1] = selectedSpan.bbox;
-
-    return (
-      <aside className="fixed inset-x-0 bottom-0 z-40 max-h-[46vh] overflow-y-auto border-t border-border bg-white p-4 shadow-xl xl:static xl:block xl:h-full xl:w-72 xl:flex-none xl:border-l xl:border-t-0 xl:shadow-none">
-        <div className="mb-4 text-sm font-semibold text-emerald-950">Text Properties</div>
-        <div className="space-y-4 text-sm">
-          <PanelSectionTitle>Content</PanelSectionTitle>
-          <label className="block">
-            <span className="mb-1 block text-xs text-muted-foreground">Text</span>
-            <textarea
-              className="min-h-20 w-full resize-none rounded-md border border-border px-2 py-1 outline-none focus:ring-2 focus:ring-ring"
-              value={editingValue}
-              onChange={(event) => updateEditingValue(event.target.value)}
-            />
-          </label>
-          <PanelSectionTitle>Style</PanelSectionTitle>
-          <div className="rounded-md border border-border p-3">
-            <div className="text-xs text-muted-foreground">Font family</div>
-            <div className="mt-1 break-words font-medium">{style.font}</div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="mb-1 block text-xs text-muted-foreground">Font size</span>
-              <input
-                className="h-9 w-full rounded-md border border-border px-2 outline-none focus:ring-2 focus:ring-ring"
-                type="number"
-                min={6}
-                max={96}
-                value={Math.round(style.size)}
-                onChange={(event) => updateSelectedStyle({ size: Number(event.target.value) || style.size })}
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-xs text-muted-foreground">Color</span>
-              <input
-                className="h-9 w-full rounded-md border border-border bg-white p-1"
-                type="color"
-                value={style.color}
-                onChange={(event) => updateSelectedStyle({ color: event.target.value })}
-              />
-            </label>
-          </div>
-          <div className="flex gap-2">
-            <Button variant={style.bold ? "default" : "outline"} size="icon" onClick={() => updateSelectedStyle({ bold: !style.bold })}>
-              <Bold className="h-4 w-4" />
-            </Button>
-            <Button variant={style.italic ? "default" : "outline"} size="icon" onClick={() => updateSelectedStyle({ italic: !style.italic })}>
-              <Italic className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={style.underline ? "default" : "outline"}
-              size="icon"
-              onClick={() => updateSelectedStyle({ underline: !style.underline })}
-            >
-              <Underline className="h-4 w-4" />
-            </Button>
-          </div>
-          <PanelSectionTitle>Position</PanelSectionTitle>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-md border border-border p-3">
-              <div className="text-xs text-muted-foreground">X</div>
-              <div className="mt-1 font-medium">{Math.round(x0)}</div>
-            </div>
-            <div className="rounded-md border border-border p-3">
-              <div className="text-xs text-muted-foreground">Y</div>
-              <div className="mt-1 font-medium">{Math.round(y0)}</div>
-            </div>
-            <div className="rounded-md border border-border p-3">
-              <div className="text-xs text-muted-foreground">Width</div>
-              <div className="mt-1 font-medium">{Math.round(x1 - x0)}</div>
-            </div>
-            <div className="rounded-md border border-border p-3">
-              <div className="text-xs text-muted-foreground">Height</div>
-              <div className="mt-1 font-medium">{Math.round(y1 - y0)}</div>
-            </div>
-          </div>
-          <div className="sticky bottom-0 grid grid-cols-3 gap-2 border-t border-border bg-white pt-4">
-            <div className="col-span-3"><PanelSectionTitle>Actions</PanelSectionTitle></div>
-            <Button variant="destructive" size="sm" onClick={deleteSelectedSpan} title="Delete selected text">
-              <Trash2 className="h-4 w-4" />
-              Delete
-            </Button>
-            <Button variant="outline" size="sm" onClick={cancelSelectedEdit} title="Cancel selected edit">
-              <X className="h-4 w-4" />
-              Cancel
-            </Button>
-            <Button size="sm" onClick={applySelectedEdit} title="Apply selected edit">
-              <Check className="h-4 w-4" />
-              Apply
-            </Button>
           </div>
         </div>
       </aside>

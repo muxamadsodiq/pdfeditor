@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { FloatingTextToolbar } from "@/components/editor/FloatingTextToolbar";
 import { InlineTextEditor } from "@/components/editor/InlineTextEditor";
 import type { CanvasSize, OverlayRect } from "@/lib/coordinates";
 import { overlayRectToPdfBbox, pdfBboxToOverlayRect } from "@/lib/coordinates";
@@ -279,6 +280,12 @@ export function TextOverlay({ page, canvasSize }: TextOverlayProps) {
           >
             +
           </button>
+          <FloatingTextToolbar
+            rect={selectedRect}
+            canvasWidth={canvasSize.width}
+            canvasHeight={canvasSize.height}
+            style={selectedStyle}
+          />
         </>
       )}
     </div>
